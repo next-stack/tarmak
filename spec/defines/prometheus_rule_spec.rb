@@ -10,11 +10,12 @@ describe 'prometheus::prometheus_rule', :type => :define do
 
   let :params do
     {
-      :alert_name => "asdf",
+      :alert_name => "example-name",
     }
   end
 
   it do
-    should contain_concat__fragment("kubectl-apply-prometheus-rule-test-rule-content")
+    should contain_concat__fragment("kubectl-apply-prometheus-rules-test-rule")
+      .with_content(/example-name/)
   end
 end
