@@ -12,6 +12,6 @@ define prometheus::prometheus_rule (
   kubernetes::apply_fragment { "prometheus-rules-${title}":
     content => template('prometheus/prometheus-rule.yaml.erb'),
     order   => '01',
-    target  => "/etc/kubernetes/apply/prometheus-rules.yaml",
+    target  => '/etc/kubernetes/apply/prometheus-rules.yaml',
   }
 }
