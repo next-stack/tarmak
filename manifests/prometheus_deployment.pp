@@ -26,10 +26,18 @@ class prometheus::prometheus_deployment (
     manifests => [
       template('prometheus/prometheus-ns.yaml.erb'),
       template('prometheus/prometheus-config.yaml.erb'),
-      template('prometheus/prometheus-rules.yaml.erb'),
       template('prometheus/prometheus-deployment.yaml.erb'),
       template('prometheus/prometheus-svc.yaml.erb'),
     ],
+  }
+
+  kubernetes::apply{'prometheus-rules':
+      type => 'concat',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-rules-header':
+      content => template('prometheus/prometheus-rules-header.yaml.erb'),
+      order   => '00',
   }
 
   kubernetes::apply{'kube-state-metrics':
