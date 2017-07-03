@@ -9,13 +9,9 @@ define prometheus::prometheus_rule (
     fail('This defined type can only be used on the kubernetes master')
   }
 
-  kubernetes::apply { "prometheus-rule-${title}":
-    type => 'concat',
-  }
-
-  kubernetes::apply_fragment { "prometheus-rule-${title}-content":
+  kubernetes::apply_fragment { "prometheus-rules-${title}":
     content => template('prometheus/prometheus-rule.yaml.erb'),
-    order   => '00',
-    target  => "/etc/kubernetes/apply/prometheus-rule-${title}.yaml",
+    order   => '01',
+    target  => "/etc/kubernetes/apply/prometheus-rules.yaml",
   }
 }
