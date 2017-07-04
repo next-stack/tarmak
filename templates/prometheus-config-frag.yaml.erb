@@ -1,0 +1,62 @@
+# The job name assigned to scraped metrics by default.
+job_name: <%= @job_name %>
+<%- if @scrape_interval -%>
+  scrape_interval: <%= @scrape_interval %>
+<% end -%>
+<%- if @scrape_timeout -%>
+  scrape_timeout: <%= @scrape_timeout %>
+<% end -%>
+<%- if @metrics_path -%>
+  metrics_path: <%= @metrics_path %>
+<% end -%>
+<%- if @scheme -%>
+  scheme: <%= @scheme %>
+<% end -%>
+<%- if @params -%>
+  params:
+<% Array(@params).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
+<%- if @basic_auth -%>
+  basic_auth:
+<% Array(@basic_auth).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
+<%- if @bearer_token -%>
+  bearer_token: <%= @bearer_token %>
+<% end -%>
+<%- if @bearer_token_file -%>
+  bearer_token_file: <%= @bearer_token_file %>
+<% end -%>
+<%- if @tls_config -%>
+  tls_config: <%= @tls_config %>
+<% end -%>
+<%- if @proxy_url -%>
+  proxy_url: <%= @proxy_url %>
+<% end -%>
+<%- if @kubernetes_sd_configs -%>
+  kubernetes_sd_configs:
+<% Array(@kubernetes_sd_configs).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
+<%- if @static_configs -%>
+  static_configs:
+<% Array(@static_config).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
+<%- if @relabel_configs -%>
+  relabel_configs:
+<% Array(@relabel_configs).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
+<%- if @metric_relabel_configs -%>
+  metric_relabel_configs:
+<% Array(@metric_relabel_configs).each do |option, setting| -%>
+    <%= option %>: <%= setting %>
+<% end -%>
+<% end -%>
