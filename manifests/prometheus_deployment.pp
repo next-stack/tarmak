@@ -40,6 +40,100 @@ class prometheus::prometheus_deployment (
       order   => '00',
   }
 
+  prometheus::prometheus_rule { 'cpu-usage':
+    alert_if          => '(100 - (avg by (instance) (irate(node_cpu{name="node-exporter",mode="idle"}[5m])) * 100)) > 75',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: High CPU usage detected',
+    alert_description => '{{$labels.instance}}: CPU usage is above 75% (current value is: {{ $value }})',
+    order             => '01',
+  }
+
+  prometheus::prometheus_rule { 'etcd-server':
+    alert_if          => '(probe_success !=1 AND probe_success{instance=~".*etcd.*"})',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: etcd server probe failed',
+    alert_description => '{{$labels.instance}}: etcd server probe failed for {{$labels.job}}',
+    order             => '02',
+  }
+
+  prometheus::prometheus_rule { 'etcd-server-quorum':
+    alert_if          => '(etcd_server_has_leader != 1)',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: etcd server has no leader',
+    alert_description => '{{$labels.instance}}: etcd cluster server has no leader',
+    order             => '03',
+  }
+  prometheus::prometheus_rule { 'kubernetes-pods':
+    alert_if          => '(kube_deployment_status_replicas_unavailable != 0)',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.deployment}}: deployment has replicas unavailable',
+    alert_description => '{{$labels.deployment}}: deployment has {{$value}} replicas unavailable',
+    order             => '04',
+  }
+
+  prometheus::prometheus_rule { 'kubernetes-nodes':
+    alert_if          => '((kube_node_status_ready{condition="false"})>0 OR (kube_node_status_ready{condition="unknown"})>0)',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.node}}: is not ready or in unknown state',
+    alert_description => '{{$labels.node}}: condition {{$labels.condition}}',
+    order             => '05',
+  }
+
+  prometheus::prometheus_rule { 'load-average':
+    alert_if          => '((node_load5 / count without (cpu, mode) (node_cpu{mode="system"})) > 3)',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: High LA detected',
+    alert_description => '{{$labels.instance}}: 5 minute load average is {{$value}}',
+    order             => '06',
+  }
+
+  prometheus::prometheus_rule { 'low-disk-space-root':
+    alert_if          => '((node_filesystem_size{mountpoint="/root-disk"} - node_filesystem_free{mountpoint="/root-disk"} ) / node_filesystem_size{mountpoint="/root-disk"} * 100) > 75',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: Low root disk space',
+    alert_description => '{{$labels.instance}}: Root disk usage is above 75% (current value is: {{ $value }})',
+    order             => '07',
+  }
+  prometheus::prometheus_rule { 'low-disk-space-data':
+    alert_if          => '((node_filesystem_size{mountpoint="/data-disk"} - node_filesystem_free{mountpoint="/data-disk"} ) / node_filesystem_size{mountpoint="/data-disk"} * 100) > 75',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: Low data disk space',
+    alert_description => '{{$labels.instance}}: Data disk usage is above 75% (current value is: {{ $value }})',
+    order             => '08',
+  }
+
+  prometheus::prometheus_rule { 'swap-usage':
+    alert_if          => '(((node_memory_SwapTotal-node_memory_SwapFree)/node_memory_SwapTotal)*100) > 75',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: Swap usage detected',
+    alert_description => '{{$labels.instance}}: Swap usage usage is above 75% (current value is: {{ $value }})',
+    order             => '09',
+  }
+
+  prometheus::prometheus_rule { 'mem-usage':
+    alert_if          => '(((node_memory_MemTotal-node_memory_MemFree-node_memory_Cached)/(node_memory_MemTotal)*100)) > 75',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: High memory usage detected',
+    alert_description => '{{$labels.instance}}: Memory usage usage is above 75% (current value is: {{ $value }})',
+    order             => '10',
+  }
+
+  prometheus::prometheus_rule { 'scrape':
+    alert_if          => '(up == 0 AND up {job != "kubernetes-apiservers"})',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: Scrape target is down',
+    alert_description => '{{$labels.instance}}: Target down for job {{$labels.job}}',
+    order             => '11',
+  }
+
+  prometheus::prometheus_rule { 'scrape-container':
+    alert_if          => '(container_scrape_error) != 0',
+    alert_for         => '2m',
+    alert_summary     => '{{$labels.instance}}: Container scrape error',
+    alert_description => '{{$labels.instance}}: Failed to scrape container, metrics will not be updated',
+    order             => '12',
+  }
+
   kubernetes::apply{'kube-state-metrics':
     manifests => [
       template('prometheus/prometheus-ns.yaml.erb'),
