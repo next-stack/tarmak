@@ -1,0 +1,11 @@
+  <%= @alert_name %>.rules: |
+    ALERT <%= @alert_name %>
+      IF <%= @alert_if %>
+      FOR <%= @alert_for %>
+      LABELS {
+        severity="page"
+      }
+      ANNOTATIONS {
+        SUMMARY = <%= @alert_summary %>
+        DESCRIPTION = <%= @alert_description %>
+      }
