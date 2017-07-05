@@ -1,10 +1,10 @@
 define prometheus::prometheus_rule (
   $alert_if,
   $alert_for,
-  $alert_labels = undef,
   $alert_summary,
   $alert_description,
   $order,
+  $alert_labels = undef,
   $alert_name = $title,
 ) {
   if ! defined(Class['kubernetes::apiserver']) {
