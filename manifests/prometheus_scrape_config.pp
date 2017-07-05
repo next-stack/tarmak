@@ -1,9 +1,9 @@
 define prometheus::prometheus_scrape_config (
-  $metrics_path,
   $order,
-  $scheme,
-  $scrape_interval,
-  $scrape_timeout,
+  $metrics_path = undef,
+  $scheme = undef,
+  $scrape_interval = undef,
+  $scrape_timeout = undef,
   $basic_auth = {},
   $bearer_token = '',
   $bearer_token_file = '',
@@ -21,8 +21,8 @@ define prometheus::prometheus_scrape_config (
   }
 
   kubernetes::apply_fragment { "prometheus-scrape-config-${job_name}":
-    content => template('prometheus/prometheus-rule.yaml.erb'),
+    content => template('prometheus/prometheus-config-frag.yaml.erb'),
     order   => $order,
-    target  => '/etc/kubernetes/apply/prometheus-rules.yaml',
+    target  => '/etc/kubernetes/apply/prometheus-config.yaml',
   }
 }
