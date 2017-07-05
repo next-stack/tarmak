@@ -44,7 +44,7 @@ job_name: <%= @job_name %>
 <% end -%>
 <%- if @static_configs -%>
   static_configs:
-<% Array(@static_config).each do |option, setting| -%>
+<% Array(@static_configs).each do |option, setting| -%>
     <%= option %>: <%= setting %>
 <% end -%>
 <% end -%>
