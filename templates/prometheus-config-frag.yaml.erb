@@ -12,13 +12,13 @@ job_name: <%= @job_name %>
 <%- if @scheme -%>
   scheme: <%= @scheme %>
 <% end -%>
-<%- if @params -%>
+<% if defined?(@params) && ! @params.empty? -%>
   params:
 <% Array(@params).each do |option, setting| -%>
     <%= option %>: <%= setting %>
 <% end -%>
 <% end -%>
-<%- if @basic_auth -%>
+<% if defined?(@basic_auth) && ! @basic_auth.empty? -%>
   basic_auth:
 <% Array(@basic_auth).each do |option, setting| -%>
     <%= option %>: <%= setting %>
@@ -36,25 +36,25 @@ job_name: <%= @job_name %>
 <%- if @proxy_url -%>
   proxy_url: <%= @proxy_url %>
 <% end -%>
-<%- if @kubernetes_sd_configs -%>
+<% if defined?(@kubernetes_sd_configs) && ! @kubernetes_sd_configs.empty? -%>
   kubernetes_sd_configs:
 <% Array(@kubernetes_sd_configs).each do |option, setting| -%>
     <%= option %>: <%= setting %>
 <% end -%>
 <% end -%>
-<%- if @static_configs -%>
+<% if defined?(@static_configs) && ! @static_configs.empty? -%>
   static_configs:
 <% Array(@static_configs).each do |option, setting| -%>
     <%= option %>: <%= setting %>
 <% end -%>
 <% end -%>
-<%- if @relabel_configs -%>
+<% if defined?(@relabel_configs) && ! @relabel_configs.empty? -%>
   relabel_configs:
 <% Array(@relabel_configs).each do |option, setting| -%>
     <%= option %>: <%= setting %>
 <% end -%>
 <% end -%>
-<%- if @metric_relabel_configs -%>
+<% if defined?(@metric_relabel_configs) && ! @metric_relabel_configs.empty? -%>
   metric_relabel_configs:
 <% Array(@metric_relabel_configs).each do |option, setting| -%>
     <%= option %>: <%= setting %>
