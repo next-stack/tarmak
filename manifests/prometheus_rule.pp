@@ -1,6 +1,7 @@
 define prometheus::prometheus_rule (
   $alert_if,
   $alert_for,
+  $alert_labels = undef,
   $alert_summary,
   $alert_description,
   $order,

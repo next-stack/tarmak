@@ -3,9 +3,15 @@
       IF <%= @alert_if %>
       FOR <%= @alert_for %>
       LABELS {
+<%- if @alert_labels -%>
+<% Array(@alert_labels).each do |option, setting| -%>
+        <%= option %>="<%= setting %>"
+<% end -%>
+<%- else -%>
         severity="page"
+<% end -%>
       }
       ANNOTATIONS {
-        SUMMARY = <%= @alert_summary %>
-        DESCRIPTION = <%= @alert_description %>
+        SUMMARY = "<%= @alert_summary %>"
+        DESCRIPTION = "<%= @alert_description %>"
       }
