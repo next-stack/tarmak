@@ -41,7 +41,7 @@ class prometheus::prometheus_deployment (
   }
 
   kubernetes::apply_fragment { 'prometheus-config-prometheus-file':
-      content => "  prometheus.yml: |-",
+      content => '  prometheus.yml: |-',
       order   => '01',
       target  => '/etc/kubernetes/apply/prometheus-config.yaml',
   }
