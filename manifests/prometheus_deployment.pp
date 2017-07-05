@@ -25,10 +25,43 @@ class prometheus::prometheus_deployment (
   kubernetes::apply{'prometheus-server':
     manifests => [
       template('prometheus/prometheus-ns.yaml.erb'),
-      template('prometheus/prometheus-config.yaml.erb'),
       template('prometheus/prometheus-deployment.yaml.erb'),
       template('prometheus/prometheus-svc.yaml.erb'),
     ],
+  }
+
+  kubernetes::apply{'prometheus-config':
+      type => 'concat',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-config-header':
+      content => template('prometheus/prometheus-config-header.yaml.erb'),
+      order   => '00',
+      target  => '/etc/kubernetes/apply/prometheus-config.yaml',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-config-prometheus-file':
+      content => "  prometheus.yml: |-",
+      order   => '01',
+      target  => '/etc/kubernetes/apply/prometheus-config.yaml',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-config-prometheus-rules':
+      content => template('prometheus/prometheus-config-rules.yaml.erb'),
+      order   => '02',
+      target  => '/etc/kubernetes/apply/prometheus-config.yaml',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-config-global':
+      content => template('prometheus/prometheus-config-global.yaml.erb'),
+      order   => '03',
+      target  => '/etc/kubernetes/apply/prometheus-config.yaml',
+  }
+
+  kubernetes::apply_fragment { 'prometheus-config-global':
+      content => '    scrape_configs:',
+      order   => '04',
+      target  => '/etc/kubernetes/apply/prometheus-config.yaml',
   }
 
   kubernetes::apply{'prometheus-rules':
@@ -38,6 +71,7 @@ class prometheus::prometheus_deployment (
   kubernetes::apply_fragment { 'prometheus-rules-header':
       content => template('prometheus/prometheus-rules-header.yaml.erb'),
       order   => '00',
+      target  => '/etc/kubernetes/apply/prometheus-rules.yaml',
   }
 
   prometheus::prometheus_rule { 'cpu-usage':
