@@ -64,6 +64,220 @@ class prometheus::prometheus_deployment (
       target  => '/etc/kubernetes/apply/prometheus-config.yaml',
   }
 
+  prometheus::prometheus_scrape_config { 'etcd_k8s':
+    metrics_path => '/probe',
+    params => { 'module' => '[k8s_proxy]',
+    static_configs => 'targets' => '<%- @etcd_cluster.each do |etcd| -%>' },
+    relabel_configs =>
+      {
+        'source_labels' => '[]',
+        'regex' => '(.*)',
+        'target_label' => '__param_target',
+        'replacement' => 'https://127.0.0.1:<%= @etcd_k8s_port %>/metrics',
+      },
+  }
+
+  prometheus::prometheus_scrape_config { 'events_k8s':
+    metrics_path => '/probe',
+    params => { 'module' => '[events_proxy]',
+    static_configs => 'targets' => '<%- @etcd_cluster.each do |etcd| -%>' },
+    relabel_configs =>
+      {
+        'source_labels' => '[]',
+        'regex' => '(.*)',
+        'target_label' => '__param_target',
+        'replacement' => 'https://127.0.0.1:<%= @etcd_k8s_port %>/metrics',
+      },
+  }
+
+  prometheus::prometheus_scrape_config { 'overlay_k8s':
+    metrics_path => '/probe',
+    params => { 'module' => '[overlay_proxy]',
+    static_configs => 'targets' => '<%- @etcd_cluster.each do |etcd| -%>' },
+    relabel_configs =>
+      {
+        'source_labels' => '[]',
+        'regex' => '(.*)',
+        'target_label' => '__param_target',
+        'replacement' => 'https://127.0.0.1:<%= @etcd_k8s_port %>/metrics',
+      },
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-apiservers'
+    kubernetes_sd_configs =>
+      {
+        'role' => 'endpoints',
+      }
+    scheme => 'https',
+    tls_config =>
+      {
+        'ca_file' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+      }
+    bearer_token_file => '/var/run/secrets/kubernetes.io/serviceaccount/token',
+    relabel_configs =>
+      {
+        'source_labels' => '[__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]',
+        'action'        => 'keep',
+        'regex'         => 'default;kubernetes;https',
+      },
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-nodes'
+    kubernetes_sd_configs =>
+      {
+         'role' => 'node',
+      }
+     scheme => 'https',
+     tls_config =>
+       {
+         'ca_file' => '/var/run/secrets/kubernetes.io/serviceaccount/ca.crt',
+       }
+     bearer_token_file => '/var/run/secrets/kubernetes.io/serviceaccount/token',
+     relabel_configs =>
+       {
+         'action' => 'labelmap'
+         'regex'  => '__meta_kubernetes_node_label_(.+)'
+       },
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-nodes'
+    kubernetes_sd_configs =>
+      {
+         'role' => 'endpoints',
+      }
+    relabel_configs => {
+      '- source_labels' => '[__meta_kubernetes_service_annotation_prometheus_io_scrape]',
+      'action' => 'keep',
+      'regex' => 'true',
+      '- source_labels' => '[__meta_kubernetes_service_annotation_prometheus_io_scheme]',
+      'action' => 'replace',
+      'target_label' => '__scheme__',
+      'regex' => '(https?)'
+      '- source_labels' => '[__meta_kubernetes_service_annotation_prometheus_io_path]',
+      'action' => 'replace',
+      'target_label' => '__metrics_path__',
+      'regex' => '(.+)',
+      '- source_labels' => '[__address__, __meta_kubernetes_service_annotation_prometheus_io_port]',
+      'action' => 'replace',
+      'target_label' => '__address__',
+      'regex' => '(.+)(?::\d+);(\d+)',
+      'replacement' => '$1:$2',
+      '- action' => 'labelmap',
+      'regex' => '__meta_kubernetes_service_label_(.+)',
+      '- source_labels' => '[__meta_kubernetes_namespace]',
+      'action' => 'replace',
+      'target_label' => 'kubernetes_namespace',
+      '- source_labels' => '[__meta_kubernetes_service_name]'
+      'action' => 'replace',
+      'target_label' => 'kubernetes_name',
+    }
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-node-exporter':
+    kubernetes_sd_configs => {
+      '- role' => 'node'
+    }
+
+    relabel_configs => {
+      '- action' => 'labelmap',
+      'regex' => '__meta_kubernetes_node_label_(.+)',
+      '- source_labels' => '[__meta_kubernetes_role]'
+      'action' => 'replace'
+      'target_label' => 'kubernetes_role'
+      '- source_labels' => '[__address__]'
+        'regex' => '(.*):10250',
+        'replacement' => '${1}:9100',
+        'target_label' => '__address__'
+      '- source_labels' => '[__meta_kubernetes_node_label_kubernetes_io_hostname]'
+      'target_label' => '__instance__'
+      # set "name" value to "job"
+      '- source_labels' => '[job]',
+      'regex' => 'kubernetes-(.*)',
+      'replacement' => '${1}',
+      'target_label' => 'name',
+    }
+  }
+
+  prometheus::prometheus_scrape_config { 'ctm-log-exporter':
+    kubernetes_sd_configs => {
+      '- role' => 'node'
+    }
+
+    relabel_configs => {
+      '- action' 'labelmap'
+      'regex' => '__meta_kubernetes_node_label_(.+)',
+      '- source_labels' => '[__meta_kubernetes_role]'
+      'action' => 'replace',
+      'target_label' => 'kubernetes_role',
+      '- source_labels' => '[__address__]',
+      'regex' => '(.*):10250',
+      'replacement' => '${1}:9190'
+      'target_label' => '__address__'
+      '- source_labels' => '[__meta_kubernetes_node_label_kubernetes_io_hostname]'
+      'target_label' => '__instance__'
+      # set "name" value to "job"
+      '- source_labels' => '[job]'
+      'regex' => 'kubernetes-(.*)'
+      'replacement' => '${1}'
+      'target_label' => 'name'
+    }
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-services':
+    kubernetes_sd_configs => {
+      '- role' => 'service'
+    },
+    metrics_path => '/probe'
+    'params' => {
+        'module' => '[http_2xx]',
+    },
+    relabel_configs => {
+      '- source_labels' => '[__meta_kubernetes_service_annotation_prometheus_io_probe]',
+      'action' => 'keep'
+      'regex' => 'true'
+      '- source_labels' => '[__address__]'
+      'target_label' => '__param_target'
+      '- target_label' => '__address__'
+        'replacement' => 'blackbox'
+      '- source_labels' => '[__param_target]'
+      'target_label' => 'instance'
+      '- action' => 'labelmap'
+      'regex' => '__meta_kubernetes_service_label_(.+)'
+      '- source_labels' => '[__meta_kubernetes_service_namespace]'
+        'target_label' => 'kubernetes_namespace'
+      '- source_labels' => '[__meta_kubernetes_service_name]'
+        'target_label' => 'kubernetes_name'
+    }
+  }
+
+  prometheus::prometheus_scrape_config { 'kubernetes-pods':
+    kubernetes_sd_configs => {
+      '- role' => 'pod'
+    },
+    relabel_configs => {
+      '- source_labels' => '[__meta_kubernetes_pod_annotation_prometheus_io_scrape]',
+      'action' => 'keep'
+      'regex' => 'true',
+      '- source_labels' => '[__meta_kubernetes_pod_annotation_prometheus_io_path]',
+      'action' => 'replace'
+      'target_label' => '__metrics_path__'
+      'regex' => '(.+)'
+      '- source_labels' => '[__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]'
+      'action' => 'replace'
+      'regex' => '(.+):(?:\d+);(\d+)'
+      'replacement' => '${1}:${2}'
+      'target_label' => '__address__'
+      '- action' => 'labelmap'
+      'regex' => '__meta_kubernetes_pod_label_(.+)'
+      '- source_labels' => '[__meta_kubernetes_namespace]'
+      'action' => 'replace'
+      'target_label' => 'kubernetes_namespace'
+      '- source_labels' => '[__meta_kubernetes_pod_name]'
+      'action' => 'replace'
+      'target_label' => 'kubernetes_pod_name'
+    }
+  }
+
   kubernetes::apply{'prometheus-rules':
       type => 'concat',
   }
