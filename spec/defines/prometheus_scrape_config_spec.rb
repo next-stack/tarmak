@@ -14,7 +14,15 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
     let :params do
       {
         :config => {
-          'static_configs' => [ 'targets' => "<%= @etcd_cluster.join(',') %>"]
+          'metrics_path' => '/probe',
+          'params' => [ 'module' => '[k8s_proxy]'],
+          'static_configs' => [ 'targets' => '<%- @etcd_cluster.each do |etcd| -%>' ],
+          'relabel_configs' => [
+            'source_labels' => '[]',
+            'regex' => '(.*)',
+            'target_label' => '__param_target',
+            'replacement' => 'https://127.0.0.1:<%= @etcd_k8s_port %>/metrics',
+           ],
         },
         :order             => '02',
       }
@@ -32,7 +40,7 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
     end
     let :params do
       {
-        :config => { 'kubernetes_sd_configs' => { "role" => "endpoints" }},
+        :config => { 'kubernetes_sd_configs' => [ "role" => "endpoints" ]},
         :order                 => '02',
       }
     end
