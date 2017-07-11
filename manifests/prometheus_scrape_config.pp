@@ -1,6 +1,6 @@
 define prometheus::prometheus_scrape_config (
-  $config = {},
   $order,
+  $config = {},
   $job_name = $title,
 ) {
   if ! defined(Class['kubernetes::apiserver']) {

@@ -13,7 +13,9 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
     let(:etcd_cluster) { ['192.168.1.2', '192.168.1.3'] }
     let :params do
       {
-        :static_configs    => { "- targets" => "inline_template(<%= @etcd_cluster.join(',') %>)"},
+        :config => {
+          'static_configs' => [ 'targets' => "<%= @etcd_cluster.join(',') %>"]
+        },
         :order             => '02',
       }
     end
@@ -30,7 +32,7 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
     end
     let :params do
       {
-        :kubernetes_sd_configs => { "- role" => "endpoints"},
+        :config => { 'kubernetes_sd_configs' => { "role" => "endpoints" }},
         :order                 => '02',
       }
     end
