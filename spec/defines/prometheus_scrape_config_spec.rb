@@ -15,14 +15,14 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
       {
         :config => {
           'metrics_path' => '/probe',
-          'params' => [ 'module' => '[k8s_proxy]'],
-          'static_configs' => [ 'targets' => '<%- @etcd_cluster.each do |etcd| -%>' ],
-          'relabel_configs' => [
+          'params' => { 'module' => '[k8s_proxy]'},
+          'static_configs' => [ 'targets' => etcd_cluster ],
+          'relabel_configs' => [{
             'source_labels' => '[]',
             'regex' => '(.*)',
             'target_label' => '__param_target',
-            'replacement' => 'https://127.0.0.1:<%= @etcd_k8s_port %>/metrics',
-           ],
+            'replacement' => 'https://127.0.0.1:etcd_k8s_port/metrics',
+           }],
         },
         :order             => '02',
       }
@@ -30,7 +30,8 @@ describe 'prometheus::prometheus_scrape_config', :type => :define do
 
     it do
       should contain_concat__fragment("kubectl-apply-prometheus-scrape-config-etcd_k8s")
-        .with_content(/- targets: [ '192.168.1.2' ]/)
+        .with_content(/- targets:/)
+        .with_content(/  - 192.168.1.2/)
     end
   end
 
